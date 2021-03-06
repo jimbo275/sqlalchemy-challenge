@@ -140,31 +140,47 @@ def stats(start=None, end=None):
  
     if end is None:
         # calculate TMIN, TAVG, TMAX for dates greater than start
-        temp_date_results = (session.query(func.min(measurement.tobs), 
+        temp_date_results = (session.query(measurement.date, func.min(measurement.tobs), 
                                     func.avg(measurement.tobs), 
                                     func.max(measurement.tobs))
+                                    .group_by(measurement.date)
                                     .filter(measurement.date >= start)
                                     .all())
  
         # Unravel results into a 1D array and convert to a list
         # Hint: checkout the np.ravel() function to make it easier to convert to a list
-        temp_date = list(np.ravel(temp_date_results))  
-        # Return the jsonify() representation of the list
-        return jsonify(temp_date)
+        temp_date_list = []
+        for date, avg, max, min in temp_date_results:
+                temp_date_dict = {}
+                temp_date_dict["TDATE"] = date 
+                temp_date_dict["TAVG"] = avg
+                temp_date_dict["TMAX"] = max
+                temp_date_dict["TMIN"] = min
+                temp_date_list.append(temp_date_dict)
+        print(temp_date_results)# Return the jsonify() representation of the list
+        return jsonify(temp_date_list)
     else:
         # calculate TMIN, TAVG, TMAX with both start and stop
-        temp_date_results = (session.query(func.min(measurement.tobs), 
+        temp_date_results = (session.query(measurement.date, func.min(measurement.tobs), 
                                     func.avg(measurement.tobs), 
                                     func.max(measurement.tobs))
+                                    .group_by(measurement.date)
                                     .filter(measurement.date >= start)
                                     .filter(measurement.date <= end)
                                     .all())
         # Unravel results into a 1D array and convert to a list
         # Hint: checkout the np.ravel() function to make it easier to convert to a list
-        temp_date = list(np.ravel(temp_date_results))  
+        temp_date_list = []
+        for date, avg, max, min in temp_date_results:
+                temp_date_dict = {}
+                temp_date_dict["TDATE"] = date 
+                temp_date_dict["TAVG"] = avg
+                temp_date_dict["TMAX"] = max
+                temp_date_dict["TMIN"] = min
+                temp_date_list.append(temp_date_dict)
         # Return the jsonify() representation of the list
         session.close()
-        return jsonify(temp_date)
+        return jsonify(temp_date_list)
 
 if __name__ == '__main__':
     app.run()
